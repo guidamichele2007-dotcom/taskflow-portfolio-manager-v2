@@ -39,10 +39,31 @@ presi in carico da un team di sviluppo.
 │   │   └── src/
 │   │       ├── types/      # Interfacce: Plant, Zombie, Ability, Rarity, Level...
 │   │       └── data/       # Dataset reali: 30 piante, 30 nemici + boss
-│   └── game-core/          # Prototipo del motore di simulazione combattimento
-│       └── src/combat/     # CombatEngine deterministico (lane, proiettili, danni, stati)
+│   ├── game-core/          # Prototipo del motore di simulazione combattimento
+│   │   └── src/combat/     # CombatEngine deterministico (lane, proiettili, danni, stati)
+│   └── web-prototype/      # ⭐ Prototipo GIOCABILE nel browser (vedi sotto)
 └── README.md
 ```
+
+## ⚠️ Importante: cos'è realmente giocabile qui
+
+Il gioco finito descritto nel GDD (art 3D cartoon, audio, 95 livelli, PvP online, ecc.) **non
+esiste**: costruirlo è il lavoro stimato in `docs/gdd/14` (~18 mesi, team di ~30 persone). Quello
+che *è* realmente eseguibile in questo repository è **`packages/web-prototype`**: una demo
+giocabile nel browser che usa il vero motore di combattimento (`CombatEngine.ts`) e i veri dataset
+di piante/nemici, con una grafica placeholder a emoji/colori (non l'art definitiva del doc 11).
+
+### Come aprire il prototipo giocabile
+
+```bash
+npm install                      # una sola volta, dalla root del repository
+npm run dev --workspace packages/web-prototype
+# poi apri l'indirizzo mostrato in terminale (di norma http://localhost:5173)
+```
+
+Nel browser: scegli una carta pianta dalla barra in alto, clicca su una casella della griglia
+per piazzarla, guarda le ondate di Marciti avanzare e i tuoi Semi di Riserva. È un solo livello
+dimostrativo (1 mondo, 4 ondate, meteo dinamico), non l'intera campagna a 95 livelli del GDD.
 
 ## Come usare questo repository
 
@@ -54,3 +75,6 @@ presi in carico da un team di sviluppo.
    la risoluzione di un turno di combattimento (piazzamento, movimento nemici, attacchi,
    stati alterati, meteo) in modo deterministico e testabile, come riferimento per il team
    engine per la porting nel motore scelto (vedi doc 12).
+4. **Prototipo giocabile**: `packages/web-prototype` è l'unica parte di questo repository che si
+   "apre" davvero in un browser (vedi sezione sopra) — utile per validare rapidamente il feel del
+   loop di gioco prima di investire nella produzione dell'art/engine definitivi.

@@ -135,16 +135,20 @@ export class CombatEngine {
   private rng: () => number;
   private nextInstanceId = 1;
   private pendingSpawns: Array<{ atTick: number; zombieId: string; lane: number }> = [];
+  /** Ricarica del seme (doc 03): tick oltre il quale una carta può essere ripiazzata. */
+  private cardRechargeUntilTick = new Map<string, number>();
 
   constructor(
     private readonly level: LevelDefinition,
     private readonly plantDefs: Map<string, PlantDefinition>,
     private readonly zombieDefs: Map<string, ZombieDefinition>,
     seed = 1,
+    initialSap = 0,
   ) {
     this.tiles = initGrid(level.terrainOverrides);
     this.reserveSeedsLeft = level.reserveSeeds;
     this.rng = createDeterministicRng(seed);
+    this.sap = initialSap;
     this.scheduleWaves();
   }
 
@@ -183,16 +187,18 @@ export class CombatEngine {
     };
   }
 
-  /** Piazza una pianta se ci sono Linfa sufficienti e la tile è libera/valida. */
+  /** Piazza una pianta se ci sono Linfa sufficienti, la carta non è in ricarica e la tile è libera. */
   placePlant(definitionId: string, coord: GridCoord): PlantInstance | null {
     const def = this.plantDefs.get(definitionId);
     if (!def) throw new Error(`Pianta sconosciuta: ${definitionId}`);
     if (this.sap < def.cost) return null;
+    if (this.tick < (this.cardRechargeUntilTick.get(definitionId) ?? 0)) return null;
     if (this.plants.some((p) => p.coord.lane === coord.lane && p.coord.column === coord.column)) {
       return null;
     }
 
     this.sap -= def.cost;
+    this.cardRechargeUntilTick.set(definitionId, this.tick + ticksFromSeconds(def.rechargeSeconds));
     const instance: PlantInstance = {
       instanceId: `plant-${this.nextInstanceId++}`,
       definitionId,
@@ -213,6 +219,12 @@ export class CombatEngine {
     const def = this.plantDefs.get(this.plants[idx].definitionId);
     if (def) this.sap += Math.floor(def.cost * 0.5);
     this.plants.splice(idx, 1);
+  }
+
+  /** Secondi rimanenti prima che una carta possa essere ripiazzata (0 se già pronta). */
+  getCardRechargeRemainingSeconds(definitionId: string): number {
+    const until = this.cardRechargeUntilTick.get(definitionId) ?? 0;
+    return Math.max(0, (until - this.tick) / TICKS_PER_SECOND);
   }
 
   setWeather(weather: Weather): void {
@@ -307,8 +319,11 @@ export class CombatEngine {
   }
 
   private findTargetsInRange(plant: PlantInstance, def: PlantDefinition): ZombieInstance[] {
+    // Un Marcito è "in gittata" finché non ha ancora superato la colonna della pianta
+    // (posizione >= colonna): la pianta spara in avanti verso i nemici in avvicinamento,
+    // mai all'indietro verso caselle già oltrepassate.
     const sameLane = this.zombies.filter(
-      (z) => z.lane === plant.coord.lane && z.position <= plant.coord.column + 0.999,
+      (z) => z.lane === plant.coord.lane && z.position >= plant.coord.column,
     );
     if (sameLane.length === 0) return [];
 
