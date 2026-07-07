@@ -1,0 +1,445 @@
+<title>ROOTGUARD — Prototipo Giocabile</title>
+<style>
+  :root {
+    color-scheme: light dark;
+
+    /* --- Notte (dark, default) --- */
+    --bg: #14231a;
+    --surface: #1e3226;
+    --surface-2: #253d2e;
+    --ink: #eef2ea;
+    --muted: #93a894;
+    --accent: #e8c65a;
+    --accent-ink: #241b04;
+    --accent-2: #6fbf73;
+    --danger: #e2685f;
+    --line: rgba(238, 242, 234, 0.12);
+    --shadow: 0 20px 50px -25px rgba(0, 0, 0, 0.6);
+
+    --tile-normal: #24392c;
+    --tile-alt: #2a4032;
+    --tile-bruciato: #5c2c1d;
+    --tile-ghiacciato: #23516a;
+    --tile-allagato: #1f5560;
+    --tile-radicato: #345f37;
+    --tile-spore: #423361;
+
+    --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, "URW Palladio", Georgia, "Times New Roman", serif;
+    --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #e9f0e1;
+      --surface: #ffffff;
+      --surface-2: #f2f6ec;
+      --ink: #182619;
+      --muted: #5c6b58;
+      --accent: #9c7112;
+      --accent-ink: #fffaf0;
+      --accent-2: #2f7a3d;
+      --danger: #b23b31;
+      --line: rgba(24, 38, 25, 0.12);
+      --shadow: 0 20px 50px -25px rgba(24, 38, 25, 0.25);
+
+      --tile-normal: #dde8d2;
+      --tile-alt: #d3e1c6;
+      --tile-bruciato: #e7c2b3;
+      --tile-ghiacciato: #c3dfe9;
+      --tile-allagato: #bfe0e6;
+      --tile-radicato: #cbe3c3;
+      --tile-spore: #dcd1ea;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #14231a; --surface: #1e3226; --surface-2: #253d2e; --ink: #eef2ea; --muted: #93a894;
+    --accent: #e8c65a; --accent-ink: #241b04; --accent-2: #6fbf73; --danger: #e2685f;
+    --line: rgba(238, 242, 234, 0.12); --shadow: 0 20px 50px -25px rgba(0, 0, 0, 0.6);
+    --tile-normal: #24392c; --tile-alt: #2a4032; --tile-bruciato: #5c2c1d; --tile-ghiacciato: #23516a;
+    --tile-allagato: #1f5560; --tile-radicato: #345f37; --tile-spore: #423361;
+  }
+
+  :root[data-theme="light"] {
+    --bg: #e9f0e1; --surface: #ffffff; --surface-2: #f2f6ec; --ink: #182619; --muted: #5c6b58;
+    --accent: #9c7112; --accent-ink: #fffaf0; --accent-2: #2f7a3d; --danger: #b23b31;
+    --line: rgba(24, 38, 25, 0.12); --shadow: 0 20px 50px -25px rgba(24, 38, 25, 0.25);
+    --tile-normal: #dde8d2; --tile-alt: #d3e1c6; --tile-bruciato: #e7c2b3; --tile-ghiacciato: #c3dfe9;
+    --tile-allagato: #bfe0e6; --tile-radicato: #cbe3c3; --tile-spore: #dcd1ea;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  .page {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: clamp(24px, 5vw, 56px) 20px 64px;
+  }
+
+  .page-head {
+    margin-bottom: 22px;
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent-2);
+    margin: 0 0 10px;
+  }
+
+  h1 {
+    font-family: var(--font-display);
+    font-size: clamp(2.2rem, 7vw, 3.2rem);
+    letter-spacing: 0.03em;
+    font-weight: 700;
+    margin: 0 0 10px;
+    text-wrap: balance;
+    color: var(--ink);
+  }
+
+  .dek {
+    max-width: 62ch;
+    font-size: 1rem;
+    line-height: 1.55;
+    color: var(--muted);
+    margin: 0;
+  }
+
+  .dek strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .console {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    padding: 18px;
+    margin-top: 28px;
+  }
+
+  #app .subtitle {
+    color: var(--muted);
+    font-size: 0.8rem;
+    line-height: 1.4;
+    margin: 0 0 14px;
+    max-width: 60ch;
+  }
+
+  #app h1 {
+    display: none; /* il titolo della pagina sopra sostituisce quello generato dal bundle */
+  }
+
+  .hud {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 12px;
+    font-family: var(--font-mono);
+  }
+
+  .hud-stat {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    font-size: 0.92rem;
+  }
+
+  .hud-stat .icon { font-size: 1.1rem; font-family: var(--font-body); }
+
+  .hud-spacer { flex: 1; }
+
+  .speed-controls { display: flex; gap: 4px; }
+
+  .speed-controls button,
+  .restart-btn {
+    background: var(--surface);
+    border: 1px solid var(--accent-2);
+    color: var(--ink);
+    border-radius: 6px;
+    padding: 5px 11px;
+    cursor: pointer;
+    font-size: 0.78rem;
+    font-family: var(--font-mono);
+  }
+
+  .speed-controls button.active {
+    background: var(--accent-2);
+    color: var(--accent-ink);
+    font-weight: 700;
+    border-color: transparent;
+  }
+
+  button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .card-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+  }
+
+  .plant-card {
+    position: relative;
+    width: 78px;
+    min-width: 78px;
+    background: var(--surface-2);
+    border: 2px solid var(--accent-2);
+    border-radius: 9px;
+    padding: 7px 4px 6px;
+    text-align: center;
+    cursor: pointer;
+    user-select: none;
+    transition: border-color 0.15s ease, transform 0.1s ease;
+  }
+
+  .plant-card:hover:not(.disabled) {
+    transform: translateY(-2px);
+  }
+
+  .plant-card.selected {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent);
+  }
+
+  .plant-card.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .plant-card .emoji { font-size: 1.6rem; line-height: 1.2; }
+
+  .plant-card .name {
+    font-size: 0.62rem;
+    line-height: 1.15;
+    min-height: 2.2em;
+    color: var(--ink);
+  }
+
+  .plant-card .cost {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--accent);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .plant-card .recharge-overlay {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    border-radius: 0 0 7px 7px;
+    font-size: 0.65rem;
+    font-family: var(--font-mono);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .grid-wrapper {
+    position: relative;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 8px;
+    overflow: hidden;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  .grid {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(9, var(--cell, 56px));
+    grid-template-rows: repeat(5, var(--cell, 56px));
+    gap: 2px;
+  }
+
+  .tile { border-radius: 4px; background: var(--tile-normal); }
+  .tile.alt { background: var(--tile-alt); }
+  .tile.Bruciato { background: var(--tile-bruciato); }
+  .tile.Ghiacciato { background: var(--tile-ghiacciato); }
+  .tile.Allagato { background: var(--tile-allagato); }
+  .tile.Radicato { background: var(--tile-radicato); }
+  .tile.Spore { background: var(--tile-spore); }
+
+  .tile:hover { outline: 2px solid var(--accent); outline-offset: -2px; cursor: pointer; }
+
+  .entity {
+    position: absolute;
+    width: var(--cell, 56px);
+    height: var(--cell, 56px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    transition: left 0.15s linear;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .entity { transition: none; }
+    .plant-card { transition: none; }
+  }
+
+  .entity .emoji { font-size: 1.7rem; line-height: 1; }
+
+  .hp-bar {
+    width: 80%;
+    height: 4px;
+    background: rgba(0, 0, 0, 0.35);
+    border-radius: 2px;
+    margin-top: 2px;
+    overflow: hidden;
+  }
+
+  .hp-bar-fill { height: 100%; background: var(--accent-2); }
+  .entity.zombie .hp-bar-fill { background: var(--danger); }
+
+  .log {
+    margin-top: 10px;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 9px 12px;
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    color: var(--muted);
+    max-height: 92px;
+    overflow-y: auto;
+  }
+
+  .log div { margin-bottom: 3px; }
+
+  .hint {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 10px;
+    line-height: 1.5;
+  }
+
+  .overlay {
+    position: absolute;
+    inset: 0;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(2px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    border-radius: 10px;
+    text-align: center;
+    padding: 20px;
+  }
+
+  .overlay h2 {
+    font-family: var(--font-display);
+    color: var(--accent);
+    font-size: 1.7rem;
+    margin: 0;
+  }
+
+  .page-foot {
+    margin-top: 22px;
+    font-size: 0.78rem;
+    color: var(--muted);
+    line-height: 1.6;
+    border-top: 1px solid var(--line);
+    padding-top: 16px;
+  }
+
+  .page-foot code {
+    font-family: var(--font-mono);
+    background: var(--surface-2);
+    padding: 0.1em 0.4em;
+    border-radius: 4px;
+    font-size: 0.9em;
+  }
+</style>
+
+<div class="page">
+  <div class="page-head">
+    <p class="eyebrow">Prototipo interattivo — packages/web-prototype</p>
+    <h1>ROOTGUARD</h1>
+    <p class="dek">
+      Un tower-defense a corsie ispirato a Plants vs. Zombies. Questa pagina esegue
+      <strong>il vero motore di combattimento</strong> del progetto (tick fissi da 100ms,
+      economia, meteo, ricarica dei semi) — la grafica è un placeholder a emoji e colori:
+      l'art cartoon 3D definitiva è descritta nel Game Design Document (doc 11), non ancora
+      prodotta.
+    </p>
+  </div>
+
+  <div class="console">
+    <div id="app"></div>
+  </div>
+
+  <div class="page-foot">
+    Scegli una carta pianta e clicca una casella per piazzarla; le caselle colorate hanno
+    terreno alterato (Bruciato/Ghiacciato). Un solo livello dimostrativo — un mondo, quattro
+    ondate, meteo dinamico — non l'intera campagna. Motore in <code>CombatEngine.ts</code>,
+    dati piante/nemici in <code>packages/shared</code>.
+  </div>
+</div>
+
+<script>
+(function(){const e=document.createElement("link").relList;if(e&&e.supports&&e.supports("modulepreload"))return;for(const t of document.querySelectorAll('link[rel="modulepreload"]'))i(t);new MutationObserver(t=>{for(const n of t)if(n.type==="childList")for(const s of n.addedNodes)s.tagName==="LINK"&&s.rel==="modulepreload"&&i(s)}).observe(document,{childList:!0,subtree:!0});function a(t){const n={};return t.integrity&&(n.integrity=t.integrity),t.referrerPolicy&&(n.referrerPolicy=t.referrerPolicy),t.crossOrigin==="use-credentials"?n.credentials="include":t.crossOrigin==="anonymous"?n.credentials="omit":n.credentials="same-origin",n}function i(t){if(t.ep)return;t.ep=!0;const n=a(t);fetch(t.href,n)}})();const E=5,h=9,L={Comune:500,NonComune:1200,Raro:3e3,Epico:7500,Leggendario:18e3,Mitico:3e4};function r(o,e="Materiale di Bioma"){const a=L[o];return[{stage:"Seme",statMultiplier:1,goldSeedCost:0,humusCost:0},{stage:"Fiorita",statMultiplier:1.25,goldSeedCost:a,humusCost:20},{stage:"Ancestrale",statMultiplier:1.6,goldSeedCost:a*2,humusCost:60,biomeMaterial:e}]}const x=[{id:"girasole-solare",name:"Girasole Solare",family:"RadiceMadre",role:"Produttore",rarity:"Comune",cost:50,rechargeSeconds:6,hp:120,damage:0,range:"Nessuna",passiveAbility:"Produce 25 Linfa ogni ciclo di ricarica.",evolutions:r("Comune"),strengths:["Base di ogni economia","Costo bassissimo"],weaknesses:["0 danno","Muore in 2 colpi da corpo a corpo"],synergies:["Adiacente a Fungo Radicato: +15% Linfa prodotta"],animationNotes:'Dondolio idle 2s, "starnuto" di polline quando colpita ma non uccisa.',vfxNotes:'Particellare dorato ellittico ad ogni produzione con piccolo "cin" luminoso.'},{id:"baccello-tiratore",name:"Baccello Tiratore",family:"Baccello",role:"Attaccante",rarity:"Comune",cost:100,rechargeSeconds:6,hp:150,damage:20,range:"Corsia",passiveAbility:"Spara un seme a distanza lungo la corsia.",evolutions:r("Comune"),strengths:["Metro di riferimento del bilanciamento (doc 06)","Economico e affidabile"],weaknesses:["Nessuna copertura aerea"],synergies:["Torcia di Brace nella stessa corsia: +50% danno ai suoi proiettili"],animationNotes:"Masticazione/rigurgito ad ogni colpo, foglia che si piega nel rinculo.",vfxNotes:"Scintilla verde a proiettile con scia luminosa."},{id:"muro-di-corteccia",name:"Muro di Corteccia",family:"Foglia",role:"Muro",rarity:"Comune",cost:75,rechargeSeconds:25,hp:1200,damage:5,range:"Melee",passiveAbility:"Alto HP, assorbe colpi per guadagnare tempo.",evolutions:r("Comune"),strengths:["Altissimo HP per il costo"],weaknesses:["Danno da contatto trascurabile"],synergies:["Base di ogni linea difensiva Foglia"],animationNotes:"Scricchiolio e leggera deformazione ad ogni colpo subito.",vfxNotes:"Trucioli di corteccia agli impatti."},{id:"patata-detonante",name:"Patata Detonante",family:"Baccello",role:"Istantanea",rarity:"Comune",cost:50,rechargeSeconds:20,hp:100,damage:400,range:"Area",passiveAbility:'Si arma dopo 8s (icona "occhio aperto"), esplode al primo contatto nemico.',evolutions:r("Comune"),strengths:["Danno alto per Linfa spesa se posizionata bene"],weaknesses:["Inutile se calpestata prima dell’armamento"],synergies:["Ottima davanti a un Muro per punire i primi arrivi"],animationNotes:'Si "sotterra" all’armamento, riemerge scattando all’esplosione.',vfxNotes:"Esplosione terrosa ad area con onda di polvere."},{id:"baccello-di-gelo",name:"Baccello di Gelo",family:"Cristallo",role:"Attaccante",rarity:"Comune",cost:150,rechargeSeconds:6,hp:150,damage:18,range:"Corsia",passiveAbility:"Ogni colpo rallenta il bersaglio del 30% per 2s.",evolutions:r("Comune"),strengths:["Spina dorsale del kiting difensivo"],weaknesses:["Danno leggermente inferiore al Baccello Tiratore"],synergies:["Ottima prima di un Muro Spinato per massimizzare i contrattacchi subiti"],animationNotes:"Come il Baccello Tiratore ma con soffio gelido visibile ad ogni colpo.",vfxNotes:"Scintille blu e cristalli di ghiaccio residui sul bersaglio."},{id:"vite-spinata",name:"Vite Spinata",family:"Spina",role:"Attaccante",rarity:"Comune",cost:75,rechargeSeconds:8,hp:200,damage:15,range:"Melee",passiveAbility:"Danno passivo continuo (15/tick) ai nemici terrestri che la calpestano.",evolutions:r("Comune"),strengths:["Danno passivo su tutta la corsia dove è piazzata"],weaknesses:["Inutile contro nemici volanti","Rimovibile dal Marcito Operaio"],synergies:["Ottima sotto un Muro per danno passivo aggiuntivo"],animationNotes:"Spine che si rizzano al passaggio di un nemico.",vfxNotes:"Schegge marroni ad ogni tick di danno."},{id:"ninfea-radice",name:"Ninfea Radice",family:"RadiceMadre",role:"Utility",rarity:"Comune",cost:50,rechargeSeconds:8,hp:100,damage:0,range:"Nessuna",passiveAbility:"Trasforma il tile sottostante in Allagato, abilitando piante acquatiche.",evolutions:r("Comune"),strengths:["Abilita build acquatiche fuori contesto"],weaknesses:["0 danno e 0 produzione diretta"],synergies:["Obbligatoria per l’Alga Elettrica fuori dai livelli-palude"],animationNotes:"Foglie che si aprono a raggiera al piazzamento.",vfxNotes:"Increspature d’acqua costanti sul tile."},{id:"fungo-lunare",name:"Fungo Lunare",family:"Fungo",role:"Attaccante",rarity:"Comune",cost:75,rechargeSeconds:6,hp:130,damage:22,range:"Corsia",passiveAbility:"Di notte: +20% danno e -20% ricarica. Di giorno costa il doppio in Linfa.",evolutions:r("Comune"),strengths:["Ottimo danno notturno"],weaknesses:["Costoso di giorno"],synergies:["Introduce la meccanica giorno/notte fin dal Mondo 1"],animationNotes:"Cappello luminescente che pulsa più intensamente di notte.",vfxNotes:"Spore viola fluttuanti, più dense in modalità notturna."},{id:"baccello-gemello",name:"Baccello Gemello",family:"Baccello",role:"Attaccante",rarity:"NonComune",cost:175,rechargeSeconds:7,hp:160,damage:16,range:"Corsia",passiveAbility:"Spara due semi per colpo (16 danno ciascuno).",evolutions:r("NonComune"),strengths:["Efficace contro armature a strati"],weaknesses:["Costo più alto del Baccello base"],synergies:["Ottimo contro Marciti Corazzati (doc 05)"],animationNotes:"Doppia masticazione sincronizzata.",vfxNotes:"Doppia scia verde per colpo."},{id:"muro-spinato",name:"Muro Spinato",family:"Foglia",role:"Muro",rarity:"NonComune",cost:125,rechargeSeconds:25,hp:1400,damage:30,range:"Melee",passiveAbility:"Restituisce 30 danno da contrattacco ad ogni colpo subito.",evolutions:r("NonComune"),strengths:["Ottimo contro Marciti a basso HP che si accumulano"],weaknesses:["Costa più del Muro di Corteccia base"],synergies:["Sinergico con Baccello di Gelo (kiting + contrattacco)"],animationNotes:"Spine che scattano in fuori ad ogni impatto subito.",vfxNotes:"Piccola esplosione di trucioli al contrattacco."},{id:"fungo-gelo",name:"Fungo Gelo",family:"Fungo",role:"Controllo",rarity:"NonComune",cost:125,rechargeSeconds:30,hp:100,damage:10,range:"Area",passiveAbility:"Rallenta tutti i nemici in area 2 tile del 50% per 4s.",evolutions:r("NonComune"),strengths:["Crea colli di bottiglia prima di un muro"],weaknesses:["Ricarica lunga","Nessun danno significativo"],synergies:['Genitore della Fusione "Pepe Glaciale"'],animationNotes:"Rilascia una nube di spore ghiacciate al momento dell’attivazione.",vfxNotes:"Nebbia blu-bianca semi-trasparente sull’area colpita."},{id:"ciliegia-detonante",name:"Ciliegia Detonante",family:"Baccello",role:"Istantanea",rarity:"NonComune",cost:150,rechargeSeconds:25,hp:100,damage:550,range:"Area",passiveAbility:"Esplode subito dopo il piazzamento in un’area medio-grande.",evolutions:r("NonComune"),strengths:["Danno ad area molto alto"],weaknesses:["Si consuma dopo l’esplosione"],synergies:["Ottima per rompere ondate dense di Marciti Comuni"],animationNotes:"Rigonfiamento rapido prima dell’esplosione (windup leggibile).",vfxNotes:"Esplosione rossa ad area con onda di calore visibile."},{id:"torcia-di-brace",name:"Torcia di Brace",family:"Brace",role:"Utility",rarity:"NonComune",cost:175,rechargeSeconds:8,hp:200,damage:0,range:"Melee",passiveAbility:"Infiamma i proiettili che attraversano la sua tile: +50% danno.",evolutions:r("NonComune"),strengths:["Moltiplica il danno di ogni sparatore piazzato dietro di lei"],weaknesses:["Va piazzata dietro uno sparatore, non davanti: errore comune dei nuovi giocatori"],synergies:["Sinergica con Baccello Tiratore, Baccello Gemello, Vento di Semi"],animationNotes:"Fiamma perenne che si intensifica ad ogni proiettile attraversato.",vfxNotes:"Faville arancioni e fumo leggero."},{id:"cactus-tiratore",name:"Cactus Tiratore",family:"Spina",role:"Attaccante",rarity:"NonComune",cost:125,rechargeSeconds:6,hp:180,damage:24,range:"Corsia",passiveAbility:"Colpisce nemici terrestri e volanti (unica comune/non comune con anti-aereo).",evolutions:r("NonComune"),strengths:["Unica pianta economica capace di colpire i Marciti Aerostato"],weaknesses:["Danno singolo leggermente inferiore a piante specializzate a terra"],synergies:["Fondamentale nelle ondate aeree del Mondo 5"],animationNotes:"Spina che si allunga e scatta ad ogni colpo.",vfxNotes:"Piccola scia polverosa verde-marrone."},{id:"fungo-radicato",name:"Fungo Radicato",family:"Fungo",role:"Utility",rarity:"NonComune",cost:100,rechargeSeconds:10,hp:120,damage:0,range:"Area",passiveAbility:"Fertilizza le tile adiacenti (stato Radicato): +20% produzione Linfa lì.",evolutions:r("NonComune"),strengths:["Pianta chiave per l’ottimizzazione economica mid-game"],weaknesses:["0 danno diretto"],synergies:['Genitore della Fusione "Fungo Fulminante"'],animationNotes:"Spore dorate che si depositano lentamente sulle tile adiacenti.",vfxNotes:"Bagliore verde tenue persistente sulle tile Radicato."},{id:"bulbo-di-radice-madre",name:"Bulbo di Radice Madre",family:"RadiceMadre",role:"Produttore",rarity:"Raro",cost:200,rechargeSeconds:10,hp:200,damage:0,range:"Area",passiveAbility:"Produce Linfa in area, nutrendo anche i produttori adiacenti (+10%).",evolutions:r("Raro"),strengths:["Scala bene con altri produttori vicini"],weaknesses:["Costo iniziale elevato"],synergies:['2+ Bulbi adiacenti: bonus "Rete di Linfa" (+10% produzione globale del livello)'],animationNotes:"Pulsazione luminosa sincronizzata con i produttori vicini.",vfxNotes:"Rete di filamenti dorati visibili tra le piante collegate."},{id:"fungo-sonnifero",name:"Fungo Sonnifero",family:"Fungo",role:"Controllo",rarity:"Raro",cost:125,rechargeSeconds:15,hp:100,damage:0,range:"Area",passiveAbility:"Addormenta per 6s il primo nemico che entra nella sua area.",evolutions:r("Raro"),strengths:["Sinergia naturale con qualunque burst damage per un’uccisione gratuita"],weaknesses:["Si sveglia istantaneamente se subisce danno"],synergies:["Combo con Ciliegia Detonante o Fungo Esplosivo"],animationNotes:'Sbadiglio ciclico, nuvoletta "Zzz" sopra il nemico addormentato.',vfxNotes:"Polvere di sonno viola pallido."},{id:"noce-di-ghiaccio",name:"Noce di Ghiaccio",family:"Cristallo",role:"Muro",rarity:"Raro",cost:175,rechargeSeconds:25,hp:1800,damage:10,range:"Melee",passiveAbility:"Aura: tutti i nemici adiacenti sono rallentati del 20% finché è in vita.",evolutions:r("Raro"),strengths:["Combina ruolo muro e controllo in un unico slot"],weaknesses:["Costoso rispetto ai muri base"],synergies:['Genitore della Fusione "Girasole Cristallino"'],animationNotes:"Superficie scricchiolante di ghiaccio che si riforma dopo ogni colpo.",vfxNotes:"Aura blu pallido pulsante attorno alla pianta."},{id:"pepe-esplosivo",name:"Pepe Esplosivo",family:"Brace",role:"Istantanea",rarity:"Raro",cost:175,rechargeSeconds:30,hp:100,damage:500,range:"Corsia",passiveAbility:"Incendia l’intera corsia bersaglio per 3s (danno passivo continuo).",evolutions:r("Raro"),strengths:["Ottimo contro orde numerose in singola corsia"],weaknesses:["Ricarica molto lunga"],synergies:["+10% danno se adiacente a Torcia di Brace",'Genitore della Fusione "Pepe Glaciale"'],animationNotes:'Rigonfiamento e "starnuto" di fuoco lungo tutta la corsia.',vfxNotes:"Muro di fiamme che percorre la corsia bersaglio."},{id:"rovo-strangolatore",name:"Rovo Strangolatore",family:"Spina",role:"AttaccanteSpeciale",rarity:"Raro",cost:225,rechargeSeconds:35,hp:350,damage:0,range:"Melee",passiveAbility:"Ingoia ed elimina istantaneamente un singolo nemico non-boss.",evolutions:r("Raro"),activeAbility:{name:"Morso Fatale",cooldownSeconds:35,description:"Contro i boss infligge un grosso danno fisso senza eliminarlo."},strengths:["Elimina istantaneamente qualunque nemico non-boss"],weaknesses:["Ricarica lunghissima","Un solo bersaglio alla volta"],synergies:['Genitore della Fusione "Rovo di Brace"'],animationNotes:'Masticazione lenta e vistosa, "rutto" comico a fine digestione.',vfxNotes:"Piccola nuvola di foglie al momento dell’ingestione."},{id:"fiore-specchiante",name:"Fiore Specchiante",family:"Fiore",role:"Utility",rarity:"Raro",cost:150,rechargeSeconds:12,hp:150,damage:0,range:"Corsia",passiveAbility:"Ogni 8s riflette il prossimo proiettile a distanza subito da una pianta nella corsia.",evolutions:r("Raro"),strengths:["Counter dedicato ai Marciti Tiratori"],weaknesses:["Inutile contro nemici puramente melee"],synergies:["Ottima davanti a produttori economici vulnerabili ai Marciti Tiratori"],animationNotes:"Petali che si aprono a specchio quando riflette un colpo.",vfxNotes:"Bagliore rosa a forma di prisma sul proiettile riflesso."},{id:"vento-di-semi",name:"Vento di Semi",family:"Fiore",role:"AttaccantePerforante",rarity:"Raro",cost:175,rechargeSeconds:7,hp:140,damage:26,range:"Corsia",passiveAbility:"Proiettile perforante che colpisce tutti i nemici in linea nella corsia.",evolutions:r("Raro"),strengths:["Ottima contro orde compatte"],weaknesses:["Danno singolo più basso del Baccello Tiratore"],synergies:['Genitore della Fusione "Vento Ipnotico"'],animationNotes:"Soffio visibile che attraversa l’intera corsia.",vfxNotes:"Petali chiari e glitter che seguono la traiettoria del proiettile."},{id:"fungo-esplosivo",name:"Fungo Esplosivo",family:"Fungo",role:"Istantanea",rarity:"Epico",cost:275,rechargeSeconds:45,hp:100,damage:1200,range:"Area",passiveAbility:"Area 3x3 enorme, spazza quasi ogni nemico non-boss presente.",evolutions:r("Epico"),strengths:['Il "nuke" del roster'],weaknesses:["Lascia un cratere Bruciato temporaneo (10s, nessun piazzamento possibile lì)"],synergies:["Da usare su ondate dense, non su singoli bersagli"],animationNotes:"Rigonfiamento enorme prima dell’esplosione, windup ben visibile.",vfxNotes:"Onda d’urto viola-nera con detriti di terreno."},{id:"fiore-ipnotico",name:"Fiore Ipnotico",family:"Fiore",role:"Controllo",rarity:"Epico",cost:250,rechargeSeconds:30,hp:150,damage:0,range:"Melee",passiveAbility:"Converte un nemico non-boss alla propria causa per 15s.",evolutions:r("Epico"),strengths:["Counter definitivo contro un singolo nemico pericoloso"],weaknesses:["Ricarica lunga","Non funziona sui boss"],synergies:['Genitore della Fusione "Vento Ipnotico"'],animationNotes:"Petali che roteano ipnoticamente attorno al bersaglio convertito.",vfxNotes:"Aura rosa pulsante sul nemico controllato, lampo alla fine della conversione."},{id:"alga-elettrica",name:"Alga Elettrica",family:"Cristallo",role:"AttaccanteArea",rarity:"Epico",cost:250,rechargeSeconds:8,hp:180,damage:20,range:"Corsia",passiveAbility:"Fulmine a catena su fino a 3 bersagli in corsie adiacenti. Richiede tile Allagato.",evolutions:r("Epico"),strengths:["Unica pianta base con danno multi-corsia nativo"],weaknesses:["Richiede Ninfea Radice o meteo Pioggia per essere piazzata fuori dalle paludi"],synergies:['Genitore della Fusione "Fungo Fulminante"'],animationNotes:"Scariche elettriche visibili tra le foglie sommerse.",vfxNotes:"Fulmini blu-bianchi a catena tra i bersagli colpiti."},{id:"guardiano-di-corteccia-ancestrale",name:"Guardiano di Corteccia Ancestrale",family:"Foglia",role:"Muro",rarity:"Epico",cost:250,rechargeSeconds:40,hp:3e3,damage:15,range:"Melee",passiveAbility:"Unico muro capace di bloccare i Marciti Saltatori (non vengono scavalcati).",evolutions:r("Epico"),strengths:["Muro definitivo, blocca ogni tipo di attraversamento"],weaknesses:["Costo e ricarica molto alti"],synergies:["Obbligatorio nei livelli con Marciti Saltatori multipli"],animationNotes:"Radici che affondano vistosamente nel terreno al piazzamento.",vfxNotes:"Bagliore verde scuro lungo le venature della corteccia."},{id:"girasole-aurora",name:"Girasole Aurora",family:"RadiceMadre",role:"Produttore",rarity:"Leggendario",cost:200,rechargeSeconds:8,hp:250,damage:0,range:"Area",passiveAbility:"Produce Linfa e cura il 5% HP massimo delle piante adiacenti ad ogni ciclo.",evolutions:r("Leggendario"),strengths:["Ibrido economia/sostentamento ideale per build difensive prolungate"],weaknesses:["Costo di sblocco alto"],synergies:["Eccellente in Sopravvivenza e PvP con build a muro"],animationNotes:"Petali che emettono un bagliore aurora ad ogni impulso di cura.",vfxNotes:"Aura pulsante rosa-oro che si espande alle piante vicine."},{id:"rovo-del-crepuscolo",name:"Rovo del Crepuscolo",family:"Spina",role:"AttaccanteSpeciale",rarity:"Leggendario",cost:300,rechargeSeconds:30,hp:500,damage:60,range:"Melee",passiveAbility:"Morso ad area attorno al bersaglio con stordimento 2s ai nemici colpiti di striscio.",evolutions:r("Leggendario"),strengths:["Trasforma l’eliminazione mirata in una mini-interruzione d’ondata"],weaknesses:["Costo di sblocco molto alto"],synergies:["Eccellente contro gruppi compatti attorno a un bersaglio prioritario"],animationNotes:"Morso rapido con onda d’urto visibile attorno al punto di impatto.",vfxNotes:"Stelline rotanti sui nemici storditi dallo scoppio."},{id:"albero-della-memoria",name:"Albero della Memoria",family:"RadiceMadre",role:"Utility",rarity:"Leggendario",cost:350,rechargeSeconds:60,hp:400,damage:0,range:"Globale",passiveAbility:'Ogni 30s pulsa "+20% danno a tutte le piante" per 10s, con telegraph a schermo.',evolutions:r("Leggendario"),strengths:["Buff globale sincronizzabile con le proprie migliori piante d’attacco"],weaknesses:["Nessun danno/produzione diretta",'Pianta da build "ultimate", non da early game'],synergies:["Sinergico con qualunque mazzo ad alto danno di picco"],animationNotes:"Radici luminose che attraversano tutta la griglia al momento del pulse.",vfxNotes:"Onda dorata che percorre l’intero campo ad ogni attivazione."},{id:"corona-di-spine-ancestrale",name:"Corona di Spine Ancestrale",family:"Spina",role:"Muro",rarity:"Leggendario",cost:275,rechargeSeconds:35,hp:2200,damage:45,range:"Area",passiveAbility:"Contrattacco ad area: colpisce tutti i nemici adiacenti, non solo l’attaccante diretto.",evolutions:r("Leggendario"),strengths:["Evoluzione definitiva della linea difensiva melee"],weaknesses:["Costo di sblocco molto alto"],synergies:["Eccellente contro Marciti Sciame e orde ravvicinate"],animationNotes:"Corona di spine che scatta simultaneamente su tutti i lati colpiti.",vfxNotes:"Raggiera di schegge marroni ad ogni contrattacco."}],H=[{id:"marcito-comune",name:"Marcito Comune",category:"Camminatore",hp:200,speedMultiplier:1,damagePerHit:15,behaviorSummary:"Nessuna specialità: il metro di bilanciamento base.",counterplay:"Qualunque pianta d’attacco base lo gestisce."},{id:"marcito-cappello-di-paglia",name:"Marcito Cappello di Paglia",category:"Corazzato",hp:380,speedMultiplier:1,damagePerHit:15,behaviorSummary:"1 strato d’armatura che si stacca con effetto visivo dedicato.",counterplay:"Danno sostenuto rimuove l’armatura prima che raggiunga le difese."},{id:"marcito-elmo-di-latta",name:"Marcito Elmo di Latta",category:"Corazzato",hp:650,speedMultiplier:1,damagePerHit:18,behaviorSummary:"2 strati d’armatura.",counterplay:"Baccello Gemello o danno ad area rimuove gli strati più rapidamente."},{id:"marcito-corazza-piena",name:"Marcito Corazza Piena",category:"Corazzato",hp:1e3,speedMultiplier:.75,damagePerHit:25,behaviorSummary:"3 strati, immune a rallentamenti finché corazzato.",counterplay:"Concentrare danno per rompere l’armatura, poi rallentare normalmente."},{id:"marcito-saltatore",name:"Marcito Saltatore",category:"Mobilita",hp:300,speedMultiplier:1.3,damagePerHit:15,behaviorSummary:"Salta il primo Muro incontrato (non il Guardiano di Corteccia Ancestrale).",counterplay:"Guardiano di Corteccia Ancestrale o eliminarlo prima che raggiunga il muro.",extraStates:["Avanzata"]},{id:"marcito-scavatore",name:"Marcito Scavatore",category:"Mobilita",hp:250,speedMultiplier:1,damagePerHit:20,behaviorSummary:"Sparisce sottoterra, riemerge 2-4 colonne più avanti.",counterplay:"Vite Spinata sotto le colonne di riemersione tipiche, o danno ad area preventivo.",extraStates:["Scavo"]},{id:"marcito-aerostato",name:"Marcito Aerostato",category:"Mobilita",hp:200,speedMultiplier:.7,damagePerHit:15,behaviorSummary:"Vola sopra le piante terrestri, ignora il terreno.",counterplay:"Cactus Tiratore o qualunque pianta anti-aerea (unica famiglia capace di colpirlo tra le comuni).",extraStates:["Volo"]},{id:"marcito-rampicante",name:"Marcito Rampicante",category:"Mobilita",hp:220,speedMultiplier:1,damagePerHit:0,behaviorSummary:"Cala su una colonna a caso, ruba una pianta e risale.",counterplay:"Eliminarlo rapidamente durante la discesa prima che afferri la pianta."},{id:"marcito-gelido",name:"Marcito Gelido",category:"Speciale",hp:1400,speedMultiplier:.5,damagePerHit:30,behaviorSummary:"Lascia una scia Ghiacciata dietro di sé.",counterplay:"Danno sostenuto ad alto HP, gestire la scia ghiacciata per le piante vicine."},{id:"marcito-slittino",name:"Marcito Slittino",category:"Speciale",hp:300,speedMultiplier:1.6,damagePerHit:20,behaviorSummary:"Scivola dritto attraversando più corsie sulla scia Ghiacciata di un Marcito Gelido.",counterplay:"Eliminare i Marciti Gelidi prima che creino la scia, o piante ad area multi-corsia."},{id:"marcito-operaio",name:"Marcito Operaio",category:"AntiPianta",hp:260,speedMultiplier:1,damagePerHit:15,behaviorSummary:"Rimuove Vite Spinata / disinnesca trappole in 2s di contatto.",counterplay:"Eliminarlo prima che completi la rimozione, o proteggere le trappole con un muro."},{id:"marcito-scudato",name:"Marcito Scudato",category:"Corazzato",hp:500,speedMultiplier:1,damagePerHit:15,behaviorSummary:"Scudo frontale blocca proiettili finché non si rompe (250 HP scudo + 250 HP corpo).",counterplay:"Proiettili perforanti (Vento di Semi) o danno ad area bypassano lo scudo."},{id:"marcito-lettore",name:"Marcito Lettore",category:"Corazzato",hp:400,speedMultiplier:1,damagePerHit:15,behaviorSummary:'Ignora danno da un lato finché il "giornale" non si rompe, poi accelera e infuria (danno 25, velocità 1.5x).',counterplay:"Colpire ripetutamente per rompere lo scudo di carta il prima possibile."},{id:"marcito-tiratore",name:"Marcito Tiratore",category:"ADistanza",hp:220,speedMultiplier:1,damagePerHit:12,behaviorSummary:"Attacca le piante a distanza prima di raggiungerle.",counterplay:"Fiore Specchiante riflette i suoi colpi."},{id:"marcito-nuotatore",name:"Marcito Nuotatore",category:"Acquatico",hp:240,speedMultiplier:1,damagePerHit:15,behaviorSummary:"Attivo solo su tile Allagate/livelli palude.",counterplay:"Piante acquatiche (Alga Elettrica su Ninfea Radice)."},{id:"marcito-danzante",name:"Marcito Danzante",category:"Supporto",hp:350,speedMultiplier:1,damagePerHit:15,behaviorSummary:"Incanta una pianta (smette di attaccare 4s) ed evoca 2 Marciti Ballerini deboli per ondata.",counterplay:"Eliminarlo per priorità prima che incanti le piante principali."},{id:"marcito-scoppiettante",name:"Marcito Scoppiettante",category:"Esplosivo",hp:150,speedMultiplier:1.4,damagePerHit:300,behaviorSummary:"Corre verso la pianta più vicina ed esplode a contatto (danno ad area).",counterplay:"Eliminarlo a distanza prima che raggiunga una pianta di valore."},{id:"marcito-nebbioso",name:"Marcito Nebbioso",category:"Supporto",hp:300,speedMultiplier:1,damagePerHit:15,behaviorSummary:"Genera una nube che riduce del 30% il raggio di mira delle piante vicine.",counterplay:"Eliminarlo per priorità per ripristinare il raggio di mira delle piante a distanza."},{id:"marcito-velenoso",name:"Marcito Velenoso",category:"Camminatore",hp:280,speedMultiplier:1,damagePerHit:10,behaviorSummary:"Il suo attacco applica Avvelenamento (10 danno/tick per 5 tick).",counterplay:"Muri con rigenerazione (Muro di Corteccia Ancestrale) resistono meglio al DoT."},{id:"marcito-ladro",name:"Marcito Ladro",category:"Furto",hp:260,speedMultiplier:1.3,damagePerHit:15,behaviorSummary:"Ruba il 50% della Linfa prodotta dal produttore adiacente finché in vita.",counterplay:"Eliminarlo rapidamente per proteggere l’economia."},{id:"marcito-furtivo",name:"Marcito Furtivo",category:"Stealth",hp:240,speedMultiplier:1,damagePerHit:15,behaviorSummary:"Invisibile finché non è a 2 caselle da una pianta, o sotto Nebbia di Spore.",counterplay:"Piante ad area piazzate preventivamente sulle colonne di passaggio tipiche."},{id:"marcito-rampollo",name:"Marcito Rampollo",category:"Mini",hp:120,speedMultiplier:1.4,damagePerHit:20,behaviorSummary:"Lanciato dal Marcito Colossale, kamikaze rapido.",counterplay:"Danno ad area per gestire il gruppo generato dal Colossale."},{id:"marcito-colossale",name:"Marcito Colossale",category:"MiniBoss",hp:3500,speedMultiplier:.6,damagePerHit:120,behaviorSummary:"Ogni 15s lancia un Marcito Rampollo 3 colonne avanti; schianto distrugge 1 pianta in un colpo.",counterplay:"Muri ad alto HP in prima linea, danno sostenuto concentrato.",extraStates:["ChiamataRinforzi"]},{id:"marcito-reginetta",name:"Marcito Reginetta",category:"Supporto",hp:500,speedMultiplier:1,damagePerHit:15,behaviorSummary:"Evoca 1 Marcito Comune ogni 12s finché in vita.",counterplay:"Eliminarlo per priorità per fermare la generazione di rinforzi.",extraStates:["ChiamataRinforzi"]},{id:"marcito-corazza-reattiva",name:"Marcito Corazza Reattiva",category:"Corazzato",hp:450,speedMultiplier:1,damagePerHit:15,behaviorSummary:"Ogni colpo melee subito infligge danno di ritorno al mittente.",counterplay:"Preferire piante a distanza invece di muri/melee contro questo nemico."},{id:"marcito-ubriaco",name:"Marcito Ubriaco",category:"Erratico",hp:260,speedMultiplier:1,damagePerHit:15,behaviorSummary:"Cambia corsia ogni 3-5s con pattern telegrafato (freccia a schermo).",counterplay:"Copertura ad area su più corsie, osservare il telegraph per anticipare."},{id:"marcito-sciame",name:"Marcito Sciame",category:"Divisione",hp:300,speedMultiplier:1,damagePerHit:12,behaviorSummary:"Alla morte si divide in 3 Marciti Sciame Minori da 60 HP ciascuno.",counterplay:"Danno ad area per gestire la divisione successiva."},{id:"marcito-blindato-ruotato",name:"Marcito Blindato Ruotato",category:"Rapido",hp:180,speedMultiplier:2.2,damagePerHit:20,behaviorSummary:'Prima ondata "rompi-ghiaccio": ignora (travolge) la prima pianta incontrata.',counterplay:"Rallentamenti (Baccello di Gelo, Fungo Gelo) per ridurne la velocità prima dell’impatto."},{id:"marcito-spora-madre",name:"Marcito Spora Madre",category:"Esplosivo",hp:320,speedMultiplier:1,damagePerHit:15,behaviorSummary:"Alla morte rilascia una nube velenosa (area 2 tile, 6s).",counterplay:"Eliminarlo a distanza per evitare che la nube tocchi le piante vicine."},{id:"marcito-cristallizzato",name:"Marcito Cristallizzato",category:"Corazzato",hp:600,speedMultiplier:1,damagePerHit:18,behaviorSummary:"Immune a rallentamenti; alla morte lascia schegge di ghiaccio (danno passivo terreno 8s).",counterplay:"Danno diretto sostenuto, evitare di ripiazzare piante economiche subito dopo la sua morte."}];function T(o){let e=o>>>0;return function(){e|=0,e=e+1831565813|0;let i=Math.imul(e^e>>>15,1|e);return i=i+Math.imul(i^i>>>7,61|i)^i,((i^i>>>14)>>>0)/4294967296}}const v=10;function c(o){return Math.round(o*v)}function B(o){const e=Array.from({length:E},()=>Array.from({length:h},()=>({terrain:"Normale"})));for(const a of o)e[a.lane][a.column]={terrain:a.state};return e}function F(o,e,a,i){let t=e.speedMultiplier;a.terrain==="Ghiacciato"&&(t*=.6),a.terrain==="Radicato"&&(t*=1),i==="Gelo"&&e.category!=="Corazzato"&&(t*=.85);const n=o.statuses.find(s=>s.effect==="Rallentato");return n&&(t*=1-n.magnitude),o.statuses.some(s=>s.effect==="Stordito"||s.effect==="Addormentato")&&(t=0),t}class D{constructor(e,a,i,t=1,n=0){this.level=e,this.plantDefs=a,this.zombieDefs=i,this.tick=0,this.elapsedMs=0,this.plants=[],this.zombies=[],this.sap=0,this.currentWeather="Nessuno",this.outcome="InProgress",this.nextInstanceId=1,this.pendingSpawns=[],this.cardRechargeUntilTick=new Map,this.tiles=B(e.terrainOverrides),this.reserveSeedsLeft=e.reserveSeeds,this.rng=T(t),this.sap=n,this.scheduleWaves()}scheduleWaves(){let e=0;for(const a of this.level.waves){for(const i of a.spawns)this.pendingSpawns.push({atTick:e+c(i.delaySeconds),zombieId:i.zombieId,lane:i.lane});e+=c(10)}}getSnapshot(){return{tick:this.tick,elapsedMs:this.elapsedMs,sap:this.sap,reserveSeedsLeft:this.reserveSeedsLeft,currentWeather:this.currentWeather,outcome:this.outcome,plants:this.plants.map(e=>({...e})),zombies:this.zombies.map(e=>({...e,statuses:e.statuses.map(a=>({...a}))})),tiles:this.tiles.map(e=>e.map(a=>({...a})))}}placePlant(e,a){const i=this.plantDefs.get(e);if(!i)throw new Error(`Pianta sconosciuta: ${e}`);if(this.sap<i.cost||this.tick<(this.cardRechargeUntilTick.get(e)??0)||this.plants.some(n=>n.coord.lane===a.lane&&n.coord.column===a.column))return null;this.sap-=i.cost,this.cardRechargeUntilTick.set(e,this.tick+c(i.rechargeSeconds));const t={instanceId:`plant-${this.nextInstanceId++}`,definitionId:e,coord:a,currentHp:i.hp,maxHp:i.hp,attackCooldownTicks:0,abilityCooldownTicks:i.activeAbility?c(i.activeAbility.cooldownSeconds):0};return this.plants.push(t),t}removePlant(e){const a=this.plants.findIndex(t=>t.instanceId===e);if(a===-1)return;const i=this.plantDefs.get(this.plants[a].definitionId);i&&(this.sap+=Math.floor(i.cost*.5)),this.plants.splice(a,1)}getCardRechargeRemainingSeconds(e){const a=this.cardRechargeUntilTick.get(e)??0;return Math.max(0,(a-this.tick)/v)}setWeather(e){this.currentWeather=e}step(){return this.outcome==="InProgress"&&(this.tick++,this.elapsedMs+=100,this.updateWeatherFromTimeline(),this.spawnDueZombies(),this.moveZombies(),this.resolvePlantAttacks(),this.resolveZombieAttacks(),this.resolveProducers(),this.decayStatuses(),this.checkOutcome()),this.getSnapshot()}updateWeatherFromTimeline(){const e=this.elapsedMs/1e3;for(const a of this.level.weatherTimeline)e>=a.startSecond&&(a.endSecond===void 0||e<a.endSecond)&&(this.currentWeather=a.weather)}spawnDueZombies(){const e=this.pendingSpawns.filter(a=>a.atTick===this.tick);for(const a of e){const i=this.zombieDefs.get(a.zombieId);i&&this.zombies.push({instanceId:`zombie-${this.nextInstanceId++}`,definitionId:a.zombieId,lane:a.lane,position:h,currentHp:i.hp,attackCooldownTicks:0,statuses:[]})}this.pendingSpawns=this.pendingSpawns.filter(a=>a.atTick!==this.tick)}moveZombies(){for(const a of this.zombies){if(a.currentHp<=0)continue;const i=this.zombieDefs.get(a.definitionId);if(this.plants.some(C=>C.coord.lane===a.lane&&Math.abs(C.coord.column-Math.floor(a.position))<1))continue;const n=Math.max(0,Math.min(h-1,Math.floor(a.position))),s=this.tiles[a.lane][n],R=F(a,i,s,this.currentWeather);a.position-=.3*R/v}}resolvePlantAttacks(){for(const e of this.plants){if(e.currentHp<=0)continue;const a=this.plantDefs.get(e.definitionId);if(a.damage<=0)continue;if(e.attackCooldownTicks>0){e.attackCooldownTicks--;continue}const i=this.findTargetsInRange(e,a);if(i.length!==0){for(const t of i)t.currentHp-=a.damage;e.attackCooldownTicks=c((a.rechargeSeconds>0,1))}}this.zombies=this.zombies.filter(e=>e.currentHp>0)}findTargetsInRange(e,a){const i=this.zombies.filter(t=>t.lane===e.coord.lane&&t.position>=e.coord.column);if(i.length===0)return[];switch(i.sort((t,n)=>t.position-n.position),a.range){case"Melee":return i.slice(0,1);case"Corsia":return i.slice(0,1);case"Area":return i.slice(0,3);case"Globale":return this.zombies.slice(0,5);default:return[]}}resolveZombieAttacks(){for(const e of this.zombies){const a=Math.floor(e.position),i=this.plants.find(n=>n.coord.lane===e.lane&&n.coord.column===a&&n.currentHp>0);if(!i)continue;const t=this.zombieDefs.get(e.definitionId);if(e.attackCooldownTicks>0){e.attackCooldownTicks--;continue}i.currentHp-=t.damagePerHit,e.attackCooldownTicks=c(1)}this.plants=this.plants.filter(e=>e.currentHp>0)}resolveProducers(){for(const e of this.plants){const a=this.plantDefs.get(e.definitionId);if(a.role==="Produttore"){if(e.attackCooldownTicks>0){e.attackCooldownTicks--;continue}this.sap+=25,e.attackCooldownTicks=c(a.rechargeSeconds)}}}decayStatuses(){for(const e of this.zombies){for(const a of e.statuses)a.effect==="Avvelenato"&&(e.currentHp-=a.magnitude),a.remainingTicks--;e.statuses=e.statuses.filter(a=>a.remainingTicks>0)}this.zombies=this.zombies.filter(e=>e.currentHp>0)}checkOutcome(){if(this.zombies.some(t=>t.position<=0))if(this.reserveSeedsLeft>0)this.reserveSeedsLeft--,this.zombies=this.zombies.filter(t=>t.position>0);else{this.outcome="Defeat";return}const a=this.pendingSpawns.length===0,i=this.zombies.length===0;a&&i&&this.tick>0&&(this.outcome="Victory")}applyStatus(e,a,i,t){const n=this.zombies.find(s=>s.instanceId===e);n&&n.statuses.push({effect:a,remainingTicks:c(i),magnitude:t})}}const N=56,G=2,p=N+G,S={"girasole-solare":"🌻","baccello-tiratore":"🫛","muro-di-corteccia":"🌳","patata-detonante":"🥔","baccello-di-gelo":"🧊","vite-spinata":"🌿","cactus-tiratore":"🌵","pepe-esplosivo":"🌶️"},O=Object.keys(S),$={"marcito-comune":"🧟","marcito-cappello-di-paglia":"🧟‍♂️","marcito-saltatore":"🏃","marcito-aerostato":"🎈","marcito-corazza-piena":"🛡️","marcito-colossale":"👹"},q={Nessuno:"🌤️ Sereno",SoleCocente:"☀️ Sole Cocente",Pioggia:"🌧️ Pioggia",NebbiaSpore:"🌫️ Nebbia di Spore",Gelo:"❄️ Gelo",Vento:"💨 Vento"};function W(){return{id:"demo-giardini-sospesi",world:1,name:"Dimostrazione — Giardini Sospesi",objective:"Sopravvivi a tutte le ondate",reserveSeeds:1,terrainOverrides:[{lane:1,column:4,state:"Bruciato"},{lane:3,column:6,state:"Ghiacciato"}],weatherTimeline:[{weather:"Nessuno",startSecond:0},{weather:"Pioggia",startSecond:18},{weather:"Gelo",startSecond:40}],waves:[{index:0,isFinalWave:!1,spawns:[{zombieId:"marcito-comune",lane:0,delaySeconds:0},{zombieId:"marcito-comune",lane:2,delaySeconds:3},{zombieId:"marcito-comune",lane:4,delaySeconds:6}]},{index:1,isFinalWave:!1,spawns:[{zombieId:"marcito-cappello-di-paglia",lane:1,delaySeconds:0},{zombieId:"marcito-cappello-di-paglia",lane:3,delaySeconds:3},{zombieId:"marcito-comune",lane:2,delaySeconds:5}]},{index:2,isFinalWave:!1,spawns:[{zombieId:"marcito-saltatore",lane:0,delaySeconds:0},{zombieId:"marcito-aerostato",lane:2,delaySeconds:2},{zombieId:"marcito-saltatore",lane:4,delaySeconds:4}]},{index:3,isFinalWave:!0,spawns:[{zombieId:"marcito-corazza-piena",lane:1,delaySeconds:0},{zombieId:"marcito-comune",lane:0,delaySeconds:1},{zombieId:"marcito-comune",lane:4,delaySeconds:1},{zombieId:"marcito-corazza-piena",lane:3,delaySeconds:3},{zombieId:"marcito-comune",lane:2,delaySeconds:5}]}]}}const M=new Map(x.map(o=>[o.id,o])),z=new Map(H.map(o=>[o.id,o]));let l,d=null,P=1,f=new Set,y=0,b="InProgress";const g=[];function m(o){g.unshift(o),g.splice(20);const e=document.getElementById("log");e&&(e.innerHTML=g.map(a=>`<div>${a}</div>`).join(""))}function k(){const o=W();l=new D(o,M,z,Math.floor(Math.random()*1e9),200),d=null,f=new Set,y=o.reserveSeeds,b="InProgress",g.length=0,m("🌱 Partita iniziata: difendi l’Arca Radice dalle ondate di Marciti!");const e=document.getElementById("overlay");e&&e.remove()}const U=document.getElementById("app");U.innerHTML=`
+  <h1>🌱 ROOTGUARD — Prototipo giocabile</h1>
+  <div class="subtitle">Grafica placeholder (emoji/colori) — vedi docs/gdd/11 per l'art direction definitiva. Motore: packages/game-core/CombatEngine.ts.</div>
+  <div class="hud">
+    <div class="hud-stat"><span class="icon">💧</span><span id="sap">0</span> Linfa</div>
+    <div class="hud-stat"><span class="icon">🛡️</span><span id="reserve">0</span> Semi di Riserva</div>
+    <div class="hud-stat"><span class="icon">⏱️</span><span id="clock">0s</span></div>
+    <div class="hud-stat" id="weather">🌤️ Sereno</div>
+    <div class="hud-spacer"></div>
+    <div class="speed-controls">
+      <button data-speed="1" class="active">1x</button>
+      <button data-speed="2">2x</button>
+      <button data-speed="4">4x</button>
+    </div>
+    <button class="restart-btn" id="restart">↺ Riavvia</button>
+  </div>
+  <div class="card-bar" id="cardBar"></div>
+  <div class="grid-wrapper" id="gridWrapper" style="width:${9*p+16}px;">
+    <div class="grid" id="grid" style="--cell:${N}px;"></div>
+  </div>
+  <div class="log" id="log"></div>
+  <div class="hint">Scegli una carta pianta, poi clicca su una casella della griglia per piazzarla. Le caselle colorate hanno terreno alterato (doc 03: Bruciato/Ghiacciato).</div>
+`;document.getElementById("restart").addEventListener("click",()=>k());for(const o of Array.from(document.querySelectorAll(".speed-controls button")))o.addEventListener("click",()=>{P=Number(o.dataset.speed);for(const e of Array.from(document.querySelectorAll(".speed-controls button")))e.classList.toggle("active",e===o)});const u=document.getElementById("grid");function V(o){u.querySelectorAll(".tile").forEach(e=>e.remove());for(let e=0;e<o.tiles.length;e++)for(let a=0;a<o.tiles[e].length;a++){const i=o.tiles[e][a],t=document.createElement("div");t.className=`tile ${i.terrain} ${(e+a)%2===0?"alt":""}`,t.dataset.lane=String(e),t.dataset.column=String(a),t.style.gridColumn=String(a+1),t.style.gridRow=String(e+1),t.addEventListener("click",()=>_(e,a)),u.appendChild(t)}}function _(o,e){if(!d||l.getSnapshot().outcome!=="InProgress")return;l.placePlant(d,{lane:o,column:e})&&m(`🪴 Hai piantato ${M.get(d).name} in corsia ${o+1}, colonna ${e+1}.`)}const A=document.getElementById("cardBar");function w(o){A.innerHTML="";for(const e of O){const a=M.get(e),i=l.getCardRechargeRemainingSeconds(e),t=o.sap>=a.cost,n=document.createElement("div");n.className=`plant-card ${d===e?"selected":""} ${!t||i>0?"disabled":""}`,n.innerHTML=`
+      <div class="emoji">${S[e]}</div>
+      <div class="name">${a.name}</div>
+      <div class="cost">💧${a.cost}</div>
+      ${i>0?`<div class="recharge-overlay" style="height:${Math.min(100,i/a.rechargeSeconds*100)}%">${i.toFixed(0)}s</div>`:""}
+    `,n.addEventListener("click",()=>{!t||i>0||(d=d===e?null:e,w(l.getSnapshot()))}),A.appendChild(n)}}function Z(o){u.querySelectorAll(".entity").forEach(e=>e.remove());for(const e of o.plants){const a=document.createElement("div");a.className="entity plant",a.style.left=`${e.coord.column*p}px`,a.style.top=`${e.coord.lane*p}px`;const i=Math.max(0,e.currentHp/e.maxHp*100);a.innerHTML=`
+      <div class="emoji">${S[e.definitionId]??"🌱"}</div>
+      <div class="hp-bar"><div class="hp-bar-fill" style="width:${i}%"></div></div>
+    `,u.appendChild(a)}for(const e of o.zombies){const a=z.get(e.definitionId),i=document.createElement("div");i.className="entity zombie",i.style.left=`${e.position*p}px`,i.style.top=`${e.lane*p}px`;const t=Math.max(0,e.currentHp/a.hp*100);i.innerHTML=`
+      <div class="emoji">${$[e.definitionId]??"🧟"}</div>
+      <div class="hp-bar"><div class="hp-bar-fill" style="width:${t}%"></div></div>
+    `,u.appendChild(i)}}function j(o){if(o.outcome==="InProgress"||document.getElementById("overlay"))return;const e=document.getElementById("gridWrapper"),a=document.createElement("div");a.id="overlay",a.className="overlay",a.innerHTML=o.outcome==="Victory"?"<h2>🌸 Vittoria!</h2><div>L'Arca Radice è al sicuro. Norun approva (a modo suo).</div>":"<h2>🍂 Sconfitta</h2><div>I Marciti hanno raggiunto l'Arca Radice. Riprova!</div>",e.appendChild(a)}function K(o){document.getElementById("sap").textContent=String(Math.floor(o.sap)),document.getElementById("reserve").textContent=String(o.reserveSeedsLeft),document.getElementById("clock").textContent=`${Math.floor(o.elapsedMs/1e3)}s`,document.getElementById("weather").textContent=q[o.currentWeather]??o.currentWeather}function X(o){const e=new Set(o.zombies.map(a=>a.instanceId));for(const a of o.zombies)if(!f.has(a.instanceId)){const i=z.get(a.definitionId);m(`⚠️ ${i.name} avanza sulla corsia ${a.lane+1}!`)}f=e,o.reserveSeedsLeft<y&&m("🚨 Un Marcito ha raggiunto l’Arca! Consumato un Seme di Riserva."),y=o.reserveSeedsLeft,o.outcome!==b&&(o.outcome==="Victory"&&m("🌸 Vittoria! Tutte le ondate sono state respinte."),o.outcome==="Defeat"&&m("🍂 Sconfitta: l’Arca Radice è stata raggiunta senza più Semi di Riserva."),b=o.outcome)}function I(o){K(o),w(o),Z(o),j(o)}k();V(l.getSnapshot());I(l.getSnapshot());setInterval(()=>{let o=l.getSnapshot();for(let e=0;e<P&&o.outcome==="InProgress";e++)o=l.step(),X(o);I(o)},100);
+</script>
