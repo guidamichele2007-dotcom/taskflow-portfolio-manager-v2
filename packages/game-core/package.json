@@ -1,0 +1,19 @@
+{
+  "name": "@rootguard/game-core",
+  "version": "0.1.0",
+  "description": "Prototipo del Simulation Core di ROOTGUARD: motore di combattimento deterministico a tick fissi (vedi docs/gdd/03 e 12). Riferimento di comportamento per il porting in C#/Unity.",
+  "private": true,
+  "main": "src/combat/CombatEngine.ts",
+  "types": "src/combat/CombatEngine.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@rootguard/shared": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0",
+    "vitest": "^2.0.0"
+  }
+}

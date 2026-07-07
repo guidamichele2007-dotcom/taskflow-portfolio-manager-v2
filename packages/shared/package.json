@@ -1,0 +1,14 @@
+{
+  "name": "@rootguard/shared",
+  "version": "0.1.0",
+  "description": "Tipi e dataset condivisi di ROOTGUARD: piante, nemici, livelli (vedi docs/gdd/04 e 05).",
+  "private": true,
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0"
+  }
+}
