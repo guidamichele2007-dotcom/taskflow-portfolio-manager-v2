@@ -1,0 +1,20 @@
+{
+  "name": "@rootguard/web-prototype",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Prototipo giocabile nel browser di ROOTGUARD: dimostra il CombatEngine di packages/game-core con una UI reale (griglia, piazzamento piante, ondate). Grafica placeholder a emoji/colori, non l'art cartoon 3D definitiva (doc 11).",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@rootguard/shared": "*",
+    "@rootguard/game-core": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0",
+    "vite": "^5.4.0"
+  }
+}
