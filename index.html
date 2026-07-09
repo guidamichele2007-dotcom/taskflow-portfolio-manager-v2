@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0e1230">
+<title>Nova Brawl — Arena MOBA</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ============ CANVAS DI GIOCO ============ -->
+<canvas id="game-canvas"></canvas>
+
+<!-- ============ SCHERMATE DOM (menu) ============ -->
+<div id="ui-root">
+
+  <!-- Schermata Home / Lobby -->
+  <div class="screen" id="screen-home">
+    <div class="home-top">
+      <div class="profile-chip" data-nav="profile">
+        <div class="avatar" id="home-avatar">⚡</div>
+        <div class="profile-info">
+          <div class="pname" id="home-name">Giocatore</div>
+          <div class="pxp"><div class="pxp-fill" id="home-xpfill"></div><span id="home-level">Lv 1</span></div>
+        </div>
+      </div>
+      <div class="currency-bar">
+        <div class="currency"><span class="cur-ico">🏆</span><span id="home-trophies">0</span></div>
+        <div class="currency"><span class="cur-ico">🪙</span><span id="home-coins">0</span></div>
+        <div class="currency"><span class="cur-ico">💎</span><span id="home-gems">0</span></div>
+      </div>
+    </div>
+
+    <div class="home-center">
+      <div class="brawler-portrait" data-nav="brawlers">
+        <canvas id="home-portrait" width="220" height="220"></canvas>
+        <div class="portrait-name" id="home-brawler-name">BOLT</div>
+        <div class="portrait-hint">Tocca per cambiare brawler</div>
+      </div>
+    </div>
+
+    <div class="home-bottom">
+      <button class="mode-select" data-nav="modes">
+        <span class="mode-ico" id="home-mode-ico">💎</span>
+        <span class="mode-label" id="home-mode-name">Gem Grab</span>
+        <span class="mode-change">CAMBIA ▸</span>
+      </button>
+      <button class="play-btn" id="btn-play">GIOCA</button>
+    </div>
+
+    <div class="home-side">
+      <button class="side-btn" data-nav="shop">🛒<span>Negozio</span></button>
+      <button class="side-btn" data-nav="brawlers">👥<span>Brawler</span></button>
+      <button class="side-btn" data-nav="quests">📜<span>Missioni</span></button>
+      <button class="side-btn" data-nav="pass">🎫<span>Pass</span></button>
+      <button class="side-btn" data-nav="ranking">🥇<span>Classifica</span></button>
+      <button class="side-btn" data-nav="settings">⚙️<span>Opzioni</span></button>
+    </div>
+  </div>
+
+  <!-- Selezione modalità -->
+  <div class="screen hidden" id="screen-modes">
+    <div class="screen-head"><button class="back-btn" data-nav="home">‹</button><h2>Modalità</h2></div>
+    <div class="scroll-list" id="modes-list"></div>
+  </div>
+
+  <!-- Selezione / collezione brawler -->
+  <div class="screen hidden" id="screen-brawlers">
+    <div class="screen-head"><button class="back-btn" data-nav="home">‹</button><h2>Brawler</h2></div>
+    <div class="scroll-grid" id="brawlers-grid"></div>
+  </div>
+
+  <!-- Dettaglio brawler -->
+  <div class="screen hidden" id="screen-brawler-detail">
+    <div class="screen-head"><button class="back-btn" data-nav="brawlers">‹</button><h2 id="bd-name">—</h2></div>
+    <div class="bd-body">
+      <canvas id="bd-portrait" width="180" height="180"></canvas>
+      <div class="bd-stats" id="bd-stats"></div>
+      <div class="bd-abilities" id="bd-abilities"></div>
+      <div class="bd-skins" id="bd-skins"></div>
+      <div class="bd-actions">
+        <button class="action-btn" id="bd-upgrade">POTENZIA</button>
+        <button class="action-btn primary" id="bd-select">SELEZIONA</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Negozio -->
+  <div class="screen hidden" id="screen-shop">
+    <div class="screen-head"><button class="back-btn" data-nav="home">‹</button><h2>Negozio</h2></div>
+    <div class="scroll-grid" id="shop-grid"></div>
+  </div>
+
+  <!-- Missioni -->
+  <div class="screen hidden" id="screen-quests">
+    <div class="screen-head"><button class="back-btn" data-nav="home">‹</button><h2>Missioni</h2></div>
+    <div class="scroll-list" id="quests-list"></div>
+  </div>
+
+  <!-- Battle Pass -->
+  <div class="screen hidden" id="screen-pass">
+    <div class="screen-head"><button class="back-btn" data-nav="home">‹</button><h2>Nova Pass</h2></div>
+    <div class="pass-progress"><div class="pass-fill" id="pass-fill"></div><span id="pass-label">Tier 0</span></div>
+    <div class="scroll-list" id="pass-list"></div>
+  </div>
+
+  <!-- Classifica -->
+  <div class="screen hidden" id="screen-ranking">
+    <div class="screen-head"><button class="back-btn" data-nav="home">‹</button><h2>Classifica</h2></div>
+    <div class="scroll-list" id="ranking-list"></div>
+  </div>
+
+  <!-- Profilo -->
+  <div class="screen hidden" id="screen-profile">
+    <div class="screen-head"><button class="back-btn" data-nav="home">‹</button><h2>Profilo</h2></div>
+    <div class="scroll-list" id="profile-body"></div>
+  </div>
+
+  <!-- Impostazioni -->
+  <div class="screen hidden" id="screen-settings">
+    <div class="screen-head"><button class="back-btn" data-nav="home">‹</button><h2>Impostazioni</h2></div>
+    <div class="scroll-list" id="settings-body"></div>
+  </div>
+
+  <!-- Schermata risultati -->
+  <div class="screen hidden" id="screen-results">
+    <div class="results-card">
+      <h1 id="res-title">VITTORIA!</h1>
+      <div class="res-rows" id="res-rows"></div>
+      <button class="play-btn" id="btn-results-ok">CONTINUA</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast per notifiche -->
+<div id="toast"></div>
+
+<!-- ============ SCRIPT (ordine di dipendenza) ============ -->
+<script src="js/util.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/data.js"></script>
+<script src="js/save.js"></script>
+<script src="js/particles.js"></script>
+<script src="js/map.js"></script>
+<script src="js/entities.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/modes.js"></script>
+<script src="js/hud.js"></script>
+<script src="js/game.js"></script>
+<script src="js/menus.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

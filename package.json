@@ -1,0 +1,23 @@
+{
+  "name": "nova-brawl",
+  "version": "1.0.0",
+  "description": "Nova Brawl — MOBA arena top-down ispirato a Brawl Stars. HTML5/Canvas, giocabile su Android, iOS e desktop.",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx --yes http-server -p 8080 -c-1 .",
+    "server": "node server/server.js",
+    "android": "npx cap sync android && npx cap open android",
+    "ios": "npx cap sync ios && npx cap open ios"
+  },
+  "keywords": ["game", "moba", "html5", "canvas", "mobile", "brawler"],
+  "license": "MIT",
+  "devDependencies": {
+    "@capacitor/android": "^6.0.0",
+    "@capacitor/cli": "^6.0.0",
+    "@capacitor/core": "^6.0.0",
+    "@capacitor/ios": "^6.0.0"
+  },
+  "dependencies": {
+    "ws": "^8.17.0"
+  }
+}
