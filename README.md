@@ -5,7 +5,9 @@
 
 ## 🦫 Capybara Paradise — Game Design Document
 
-Progetto completo di un videogioco mobile cozy 3D sui capibara, pronto per lo sviluppo e la pubblicazione su App Store e Google Play. Documentazione professionale in italiano, organizzata in capitoli:
+Progetto completo di un videogioco mobile cozy 3D sui capibara, pronto per lo sviluppo e la pubblicazione su App Store e Google Play. Documentazione professionale in italiano, organizzata in capitoli.
+
+**🎮 Prototipo giocabile:** [`web/index.html`](web/index.html) — un file HTML autonomo (canvas, zero dipendenze): aprilo nel browser per giocare. Implementa il cuore del GDD: capibara con AI e animazioni procedurali, carezze, yuzu, economia in Foglie, negozio decorazioni, Armonia che attira nuovi capibara, ciclo giorno/notte, meteo (pioggia e petali), lucciole, onsen con yuzu in testa, Photo Mode con salvataggio dello scatto, Zen Mode, audio generativo e salvataggio automatico in locale.
 
 | Capitolo | Contenuto |
 |----------|-----------|
