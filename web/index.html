@@ -212,29 +212,41 @@ function skyNow(){
   const a=SKY[i], b=SKY[i+1], f=(tod-a[0])/(b[0]-a[0]||1);
   return {top:lerp3(a[1],b[1],f), bot:lerp3(a[2],b[2],f), light:lerp(a[3],b[3],f)};
 }
+function goldenF(){ return Math.max(0, 1-Math.abs(tod-0.62)/0.09); }  // picco golden hour
+function dawnF(){ return Math.max(0, 1-Math.abs(tod-0.045)/0.075); }    // nebbiolina all'alba
 
 /* ---------- world layout ---------- */
-let pond={x:0,y:0,rx:0,ry:0}, grass=[], trees=[], stars=[], clouds=[];
+let pond={x:0,y:0,rx:0,ry:0}, grass=[], trees=[], stars=[], clouds=[], reeds=[], mist=[];
 function layoutWorld(){
   pond = {x:W*0.56, y:H*0.74, rx:Math.min(W*0.30,340), ry:Math.min(H*0.12,110)};
   grass=[];
-  const n = RM? 60 : 130;
+  const n = RM? 60 : 150;
   for(let i=0;i<n;i++){
     const x=rnd(0,W), y=rnd(H*0.55,H*0.98);
-    if(inPond(x,y,1.15)) continue;
-    grass.push({x,y,h:rnd(7,16),ph:rnd(0,7),c:Math.random()});
+    if(inPond(x,y,1.2)) continue;
+    grass.push({x,y,h:rnd(7,16),ph:rnd(0,7),fl:Math.random()<0.13?Math.floor(rnd(0,3)):-1});
   }
   grass.sort((a,b)=>a.y-b.y);
   trees=[ {x:W*0.09,y:H*0.60,s:1.1,ph:rnd(0,7)}, {x:W*0.90,y:H*0.56,s:0.9,ph:rnd(0,7)} ];
   stars=[]; for(let i=0;i<90;i++) stars.push({x:Math.random(),y:Math.random()*0.55,r:rnd(.5,1.4),ph:rnd(0,7)});
   clouds=[]; for(let i=0;i<5;i++) clouds.push({x:rnd(0,1),y:rnd(0.06,0.30),s:rnd(.6,1.3),v:rnd(.004,.010)});
+  reeds=[];
+  for(let i=0;i<9;i++){
+    const a=rnd(0,Math.PI*2);
+    if(Math.abs(Math.sin(a))<0.25 && Math.random()<0.5) continue;
+    reeds.push({x:pond.x+Math.cos(a)*pond.rx*rnd(1.02,1.10),
+                y:pond.y+Math.sin(a)*pond.ry*rnd(1.06,1.18),
+                h:rnd(26,44),ph:rnd(0,7),cat:Math.random()<0.7});
+  }
+  reeds.sort((a,b)=>a.y-b.y);
+  mist=[]; for(let i=0;i<4;i++) mist.push({x:rnd(0,1),y:rnd(0.58,0.8),w:rnd(0.25,0.5),v:rnd(0.006,0.014)});
 }
 function inPond(x,y,m=1){ const dx=(x-pond.x)/(pond.rx*m), dy=(y-pond.y)/(pond.ry*m); return dx*dx+dy*dy<1; }
 resize(); // il mondo deve avere dimensioni prima di generare capibara e particelle
 
 /* ---------- particles ---------- */
-let ripples=[], hearts=[], sparks=[], steam=[], drops=[], petals=[], leavesP=[], fireflies=[], zzz=[], birds=[];
-function addRipple(x,y,big=1){ if(ripples.length>60)return; ripples.push({x,y,r:3,v:(18+big*14),a:.5}); }
+let ripples=[], hearts=[], sparks=[], steam=[], drops=[], petals=[], leavesP=[], fireflies=[], zzz=[], birds=[], shootingStars=[];
+function addRipple(x,y,big=1){ if(ripples.length>60)return; ripples.push({x,y,r:3,v:(18+big*14),a:.22+big*.22}); }
 function addHearts(x,y,n=3){ for(let i=0;i<n;i++) hearts.push({x:x+rnd(-14,14),y:y+rnd(-8,4),vy:rnd(-34,-20),vx:rnd(-8,8),a:1,s:rnd(.7,1.2)}); }
 function addSparks(x,y,n=8,col='#ffd98a'){ for(let i=0;i<n;i++) sparks.push({x,y,vx:rnd(-40,40),vy:rnd(-60,-10),a:1,col}); }
 function addZzz(x,y){ if(Math.random()<0.02) zzz.push({x,y,a:1}); }
@@ -263,6 +275,7 @@ function makeCapy(i, entering=false){
     y: rnd(H*0.60,H*0.92),
     dir: Math.random()<.5?1:-1, size:rnd(.85,1.15),
     col:`hsl(${hue} 42% ${light}%)`, colD:`hsl(${hue} 40% ${light-12}%)`,
+    colL:`hsl(${hue} 48% ${light+9}%)`,
     state:'idle', until:rnd(1,4), tx:0, ty:0,
     phase:rnd(0,7), breath:rnd(0,7), blink:rnd(1,5), blinkT:0,
     pet:0, petCd:0, earKick:0, yuzuHead:Math.random()<.5,
@@ -369,9 +382,11 @@ function drawCapy(c,now){
     ctx.restore();
     return;
   }
-  // ombra
-  ctx.fillStyle='rgba(30,30,10,.16)';
-  ctx.beginPath(); ctx.ellipse(4,2,40,9,0,0,7); ctx.fill();
+  // ombra morbida
+  const sh=ctx.createRadialGradient(4,2,4,4,2,42);
+  sh.addColorStop(0,'rgba(30,30,10,.22)'); sh.addColorStop(1,'rgba(30,30,10,0)');
+  ctx.fillStyle=sh;
+  ctx.beginPath(); ctx.ellipse(4,2,42,10,0,0,7); ctx.fill();
   // zampe
   const walking=c.state==='walk';
   ctx.fillStyle=c.colD;
@@ -380,9 +395,18 @@ function drawCapy(c,now){
     const sw = walking? Math.sin(c.phase+i*Math.PI*0.9)*3:0;
     ctx.beginPath(); ctx.roundRect(lx+sw*0.4, -12+(sleeping?6:0), 9, 13-(sleeping?6:0), 4); ctx.fill();
   }
-  // corpo
-  ctx.fillStyle=c.col;
-  ctx.beginPath(); ctx.ellipse(0,-26+(sleeping?6:0),34,20-(sleeping?3:0),0,0,7); ctx.fill();
+  // corpo con volume (luce dall'alto)
+  const oy=sleeping?6:0;
+  const bg=ctx.createRadialGradient(-6,-38-oy,5,0,-26+oy,44);
+  bg.addColorStop(0,c.colL); bg.addColorStop(0.75,c.col); bg.addColorStop(1,c.colD);
+  ctx.fillStyle=bg;
+  ctx.beginPath(); ctx.ellipse(0,-26+oy,34,20-(sleeping?3:0),0,0,7); ctx.fill();
+  // rim light dorata al tramonto
+  const gf=goldenF();
+  if(gf>0.15){
+    ctx.strokeStyle=`rgba(255,196,120,${gf*0.65})`; ctx.lineWidth=2.4; ctx.lineCap='round';
+    ctx.beginPath(); ctx.ellipse(0,-26+oy,33,19-(sleeping?3:0),0,Math.PI*1.08,Math.PI*1.85); ctx.stroke();
+  }
   // testa
   drawHead(c,now,20,-38+(sleeping?7:0),false,sleeping);
   ctx.restore();
@@ -664,18 +688,47 @@ function drawScene(now,dt){
     ctx.fillStyle=cssA(sky.top,0.85); ctx.beginPath(); ctx.arc(mx-6,my-4,14,0,7); ctx.fill();
     sunPos={x:mx,y:my};
   }
-  // nuvole
+  // stelle cadenti (solo notte fonda)
+  if(night>0.8 && Math.random()<dt*0.06 && shootingStars.length<1)
+    shootingStars.push({x:rnd(W*0.2,W*0.9),y:rnd(H*0.05,H*0.25),vx:-rnd(300,450),vy:rnd(90,150),a:1});
+  shootingStars.forEach(s=>{
+    s.x+=s.vx*dt; s.y+=s.vy*dt; s.a-=dt*1.1;
+    const grd=ctx.createLinearGradient(s.x,s.y,s.x-s.vx*0.12,s.y-s.vy*0.12);
+    grd.addColorStop(0,`rgba(255,255,240,${Math.max(0,s.a)})`); grd.addColorStop(1,'rgba(255,255,240,0)');
+    ctx.strokeStyle=grd; ctx.lineWidth=1.8; ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(s.x,s.y); ctx.lineTo(s.x-s.vx*0.12,s.y-s.vy*0.12); ctx.stroke();
+  });
+  shootingStars=shootingStars.filter(s=>s.a>0);
+
+  // nuvole soffici (blob a gradiente radiale)
+  const rainDark = weather==='rain'?0.35:0;
   for(const cl of clouds){
     cl.x+=cl.v*dt; if(cl.x>1.2) cl.x=-0.25;
     const cx=cl.x*W, cy=cl.y*H, s=cl.s;
-    const tint = lerp3([250,250,255], sky.bot, tod>0.5&&tod<0.75?0.5:0.15);
-    ctx.fillStyle=cssA(tint, 0.5+L*0.3);
-    ctx.beginPath();
-    ctx.ellipse(cx,cy,46*s,15*s,0,0,7);
-    ctx.ellipse(cx+30*s,cy+4*s,32*s,12*s,0,0,7);
-    ctx.ellipse(cx-32*s,cy+5*s,28*s,11*s,0,0,7);
-    ctx.fill();
+    let tint = lerp3([252,252,255], sky.bot, goldenF()*0.55+0.1);
+    tint = lerp3(tint,[100,105,130],rainDark);
+    tint = lerp3(tint,[58,64,100],night*0.75);
+    const alpha=(0.45+L*0.35)*(1-night*0.6);
+    for(const [ox,oy,r] of [[0,0,42],[30,5,30],[-30,6,27],[8,-9,26]]){
+      const grd=ctx.createRadialGradient(cx+ox*s,cy+oy*s,r*s*0.15,cx+ox*s,cy+oy*s,r*s);
+      grd.addColorStop(0,cssA(tint,alpha)); grd.addColorStop(0.75,cssA(tint,alpha*0.75)); grd.addColorStop(1,cssA(tint,0));
+      ctx.fillStyle=grd; ctx.beginPath(); ctx.arc(cx+ox*s,cy+oy*s,r*s,0,7); ctx.fill();
+    }
   }
+
+  // montagne lontane con foschia atmosferica
+  const haze=lerp3(lerp3(sky.top,sky.bot,0.55),[255,255,255],0.18);
+  const mtn=lerp3(haze,[26,30,56],night*0.9);
+  ctx.fillStyle=cssA(mtn,0.85);
+  ctx.beginPath(); ctx.moveTo(0,H*0.50);
+  ctx.lineTo(W*0.12,H*0.38); ctx.lineTo(W*0.26,H*0.48); ctx.lineTo(W*0.42,H*0.35);
+  ctx.lineTo(W*0.58,H*0.47); ctx.lineTo(W*0.74,H*0.37); ctx.lineTo(W*0.9,H*0.46); ctx.lineTo(W,H*0.42);
+  ctx.lineTo(W,H*0.62); ctx.lineTo(0,H*0.62); ctx.fill();
+  // banda di foschia sull'orizzonte
+  const hz=ctx.createLinearGradient(0,H*0.40,0,H*0.58);
+  hz.addColorStop(0,cssA(haze,0)); hz.addColorStop(1,cssA(haze,0.55*(0.4+L*0.6)));
+  ctx.fillStyle=hz; ctx.fillRect(0,H*0.40,W,H*0.18);
+
   // colline
   const hill1=lerp3([126,168,116],[36,44,66],night), hill2=lerp3([104,148,98],[28,35,56],night);
   ctx.fillStyle=css(hill1);
@@ -706,6 +759,22 @@ function drawScene(now,dt){
   yuzus.forEach(yz=>items.push({y:yz.y,draw:()=>drawYuzu(yz)}));
   items.sort((a,b)=>a.y-b.y).forEach(i=>i.draw());
 
+  // canneti sul bordo del laghetto
+  const windR=Math.sin(now*1.2)*0.7;
+  for(const r of reeds){
+    const sw=Math.sin(now*1.6+r.ph)*4*(0.5+windR*0.5);
+    ctx.strokeStyle=cssA(lerp3([88,140,74],[36,48,70],night),0.95);
+    ctx.lineWidth=2.2; ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(r.x,r.y);
+    ctx.quadraticCurveTo(r.x+sw*0.4,r.y-r.h*0.55,r.x+sw,r.y-r.h);
+    ctx.stroke();
+    if(r.cat){
+      ctx.fillStyle=cssA(lerp3([124,84,52],[50,40,50],night),0.95);
+      ctx.save(); ctx.translate(r.x+sw,r.y-r.h); ctx.rotate(sw*0.04);
+      ctx.beginPath(); ctx.roundRect(-2.4,-11,4.8,11,2.4); ctx.fill(); ctx.restore();
+    }
+  }
+
   // erba in primo piano
   const wind=Math.sin(now*1.4)*0.6+Math.sin(now*0.37)*0.4 + (weather==='rain'?0.3:0);
   ctx.strokeStyle=cssA(lerp3([96,150,80],[40,52,74],night),0.9);
@@ -717,10 +786,37 @@ function drawScene(now,dt){
     ctx.quadraticCurveTo(gr.x+sw*0.5,gr.y-gr.h*0.6,gr.x+sw,gr.y-gr.h);
   }
   ctx.stroke();
+  // fiorellini spontanei in punta ad alcuni fili
+  const FLC=['#ffd166','#ffb3c1','#fefae0'];
+  for(const gr of grass){
+    if(gr.fl<0) continue;
+    const sw=Math.sin(now*1.8+gr.ph)*3*wind;
+    ctx.fillStyle=cssA([255,255,255],0); // reset alpha path
+    ctx.globalAlpha=1-night*0.5;
+    ctx.fillStyle=FLC[gr.fl];
+    ctx.beginPath(); ctx.arc(gr.x+sw,gr.y-gr.h-1,2,0,7); ctx.fill();
+  }
+  ctx.globalAlpha=1;
 
   drawParticles(now,dt,night);
 
-  // luce globale notte
+  // nebbiolina bassa all'alba (e sensazione di umidità con la pioggia)
+  const mistA = dawnF()*0.16 + (weather==='rain'?0.05:0);
+  if(mistA>0.01){
+    for(const m of mist){
+      m.x+=m.v*dt*0.3; if(m.x>1.3) m.x=-0.35;
+      const mx=m.x*W, my=m.y*H, mw=m.w*W;
+      const grd=ctx.createRadialGradient(mx,my,mw*0.1,mx,my,mw);
+      grd.addColorStop(0,`rgba(240,240,250,${mistA})`); grd.addColorStop(1,'rgba(240,240,250,0)');
+      ctx.fillStyle=grd;
+      ctx.beginPath(); ctx.ellipse(mx,my,mw,mw*0.16,0,0,7); ctx.fill();
+    }
+  }
+
+  // grading: caldo al tramonto, cupo con la pioggia, blu la notte
+  const gf2=goldenF();
+  if(gf2>0.02){ ctx.fillStyle=`rgba(255,150,70,${gf2*0.10})`; ctx.fillRect(0,0,W,H); }
+  if(weather==='rain'){ ctx.fillStyle='rgba(45,55,85,.17)'; ctx.fillRect(0,0,W,H); }
   if(night>0.02){ ctx.fillStyle=`rgba(12,14,42,${night*0.32})`; ctx.fillRect(0,0,W,H); }
   // vignetta calda
   const v=ctx.createRadialGradient(W/2,H*0.55,H*0.35,W/2,H*0.55,H*0.95);
@@ -742,25 +838,43 @@ function drawTree(t,now,night){
   ctx.fillStyle=css(lerp3([110,80,55],[40,32,40],night));
   ctx.beginPath(); ctx.roundRect(-7,-10,14,52,6); ctx.fill();
   const fol=lerp3([96,158,86],[30,42,62],night);
-  ctx.fillStyle=css(fol);
+  const folD=lerp3([70,124,66],[22,32,50],night);
+  const cg=ctx.createRadialGradient(-12+sway*0.4,-58,8,sway*0.4,-40,58);
+  cg.addColorStop(0,css(lerp3([130,190,110],[44,58,80],night)));
+  cg.addColorStop(0.6,css(fol)); cg.addColorStop(1,css(folD));
+  ctx.fillStyle=cg;
   ctx.beginPath();
   ctx.ellipse(sway*0.4,-42,46,32,0,0,7);
   ctx.ellipse(-30+sway*0.3,-24,30,22,0,0,7);
   ctx.ellipse(32+sway*0.5,-26,28,20,0,0,7);
   ctx.fill();
-  ctx.fillStyle=cssA(lerp3([130,190,110],[44,58,80],night),.7);
-  ctx.beginPath(); ctx.ellipse(-8+sway*0.5,-52,26,16,0,0,7); ctx.fill();
+  const gf=goldenF();
+  if(gf>0.15){
+    ctx.strokeStyle=`rgba(255,196,120,${gf*0.4})`; ctx.lineWidth=2.5;
+    ctx.beginPath(); ctx.ellipse(sway*0.4,-42,45,31,0,Math.PI*1.1,Math.PI*1.8); ctx.stroke();
+  }
   ctx.restore();
 }
 
 function drawPond(now,sky,night){
+  // riva sabbiosa umida
+  ctx.fillStyle=cssA(lerp3([196,178,136],[54,52,66],night),0.9);
+  ctx.beginPath(); ctx.ellipse(pond.x,pond.y+2,pond.rx*1.05,pond.ry*1.12,0,0,7); ctx.fill();
+  ctx.fillStyle=cssA(lerp3([160,148,116],[44,44,58],night),0.9);
+  ctx.beginPath(); ctx.ellipse(pond.x,pond.y+1,pond.rx*1.02,pond.ry*1.05,0,0,7); ctx.fill();
+
   ctx.save();
   ctx.beginPath(); ctx.ellipse(pond.x,pond.y,pond.rx,pond.ry,0,0,7);
   const wg=ctx.createLinearGradient(0,pond.y-pond.ry,0,pond.y+pond.ry);
-  const wtop=lerp3(sky.bot,[70,140,170],0.45), wbot=lerp3(sky.top,[20,60,90],0.5);
+  const wtop=lerp3(sky.bot,[70,140,170],0.35), wbot=lerp3(sky.top,[20,60,90],0.5);
   wg.addColorStop(0,cssA(wtop,0.95)); wg.addColorStop(1,cssA(wbot,0.98));
   ctx.fillStyle=wg; ctx.fill();
   ctx.clip();
+  // profondità al centro
+  const dg=ctx.createRadialGradient(pond.x,pond.y+pond.ry*0.15,pond.ry*0.3,pond.x,pond.y,pond.rx*0.85);
+  dg.addColorStop(0,'rgba(6,18,40,.32)'); dg.addColorStop(1,'rgba(6,18,40,0)');
+  ctx.fillStyle=dg;
+  ctx.beginPath(); ctx.ellipse(pond.x,pond.y,pond.rx,pond.ry,0,0,7); ctx.fill();
   // scie di luce
   ctx.fillStyle='#ffffff';
   for(let i=0;i<4;i++){
@@ -771,17 +885,26 @@ function drawPond(now,sky,night){
   ctx.globalAlpha=1;
   // riflesso del sole/luna
   if(sunPos.x && sunPos.x>pond.x-pond.rx && sunPos.x<pond.x+pond.rx){
-    const rg=ctx.createRadialGradient(sunPos.x,pond.y,2,sunPos.x,pond.y,pond.ry*1.6);
-    rg.addColorStop(0,'rgba(255,235,180,.30)'); rg.addColorStop(1,'rgba(255,235,180,0)');
+    const moonish = night>0.5;
+    const rc = moonish? '220,230,255':'255,235,180';
+    const ra = moonish? 0.17:0.28;
+    const rg=ctx.createRadialGradient(sunPos.x,pond.y,2,sunPos.x,pond.y,pond.ry*1.15);
+    rg.addColorStop(0,`rgba(${rc},${ra})`); rg.addColorStop(1,`rgba(${rc},0)`);
     ctx.fillStyle=rg;
-    ctx.beginPath(); ctx.ellipse(sunPos.x,pond.y,pond.ry*1.6,pond.ry*0.9,0,0,7); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(sunPos.x,pond.y,pond.ry*1.15,pond.ry*0.7,0,0,7); ctx.fill();
   }
   // ninfee
+  const ly1=pond.y+4+Math.sin(now)*1.5, lx1=pond.x-pond.rx*0.55;
   ctx.fillStyle=cssA(lerp3([110,170,90],[40,60,70],night),.9);
   ctx.beginPath();
-  ctx.ellipse(pond.x-pond.rx*0.55,pond.y+4+Math.sin(now)*1.5,14,6,0,0,7);
+  ctx.ellipse(lx1,ly1,14,6,0,0,7);
   ctx.ellipse(pond.x+pond.rx*0.6,pond.y-8+Math.sin(now*1.2)*1.5,11,5,0,0,7);
   ctx.fill();
+  // fiore di loto sulla ninfea grande
+  ctx.fillStyle=cssA([255,182,203],1-night*0.4);
+  for(let i=0;i<5;i++){ const a=i/5*Math.PI*2+0.3;
+    ctx.beginPath(); ctx.ellipse(lx1+Math.cos(a)*4,ly1-3+Math.sin(a)*2,3.4,1.8,a,0,7); ctx.fill(); }
+  ctx.fillStyle='#ffd166'; ctx.beginPath(); ctx.arc(lx1,ly1-3,1.8,0,7); ctx.fill();
   ctx.restore();
   // ripples
   ctx.strokeStyle='rgba(255,255,255,.5)'; ctx.lineWidth=1.4;
@@ -790,9 +913,9 @@ function drawPond(now,sky,night){
     ctx.beginPath(); ctx.ellipse(r.x,r.y,r.r,r.r*0.36,0,0,7); ctx.stroke();
   }
   ctx.globalAlpha=1;
-  // bordo
-  ctx.strokeStyle=cssA(lerp3([170,200,150],[50,60,80],night),.5); ctx.lineWidth=3;
-  ctx.beginPath(); ctx.ellipse(pond.x,pond.y,pond.rx,pond.ry,0,0,7); ctx.stroke();
+  // riflesso chiaro sul bordo vicino
+  ctx.strokeStyle=cssA([255,255,255],0.25+goldenF()*0.2); ctx.lineWidth=2;
+  ctx.beginPath(); ctx.ellipse(pond.x,pond.y+2,pond.rx*0.99,pond.ry*0.99,0,Math.PI*0.15,Math.PI*0.85); ctx.stroke();
 }
 
 function drawDeco(d,p,now,night){
@@ -962,6 +1085,7 @@ $('title').addEventListener('pointerdown',()=>{
   if(!save.hinted) setTimeout(()=>toast('Accarezza un capibara 🐾'),900);
 },{once:true});
 setInterval(persist,10000);
+window.__capy = { setTod:v=>{tod=clamp(v,0,0.999);}, setWeather:w=>{weather=w;weatherTimer=60;} };
 requestAnimationFrame(frame);
 })();
 </script>
